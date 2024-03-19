@@ -1,7 +1,6 @@
 # diffusers를 활용한 파인툰
 
-파이썬 3.10 버전으로 테스트
-
+파이썬 3.10 버전으로 NVIDIA GPU(4090)를 사용하여 diffusers를 활용한 파인튜닝을 수행합니다.
 
 - [train_text_to_image_lora.py](https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image_lora.py)
 - [train_dreambooth_lora.py](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/train_dreambooth_lora.py)
