@@ -18,7 +18,7 @@ accelerate config default
 ```
 Optional: install [xformers](https://huggingface.co/docs/diffusers/optimization/xformers) and add `--enable_xformers_memory_efficient_attention`
 
-```
+```shell
 pip install xformers
 ```
 
@@ -56,3 +56,4 @@ docker logs --tail 100 -f 430e2e8bd9f4
 * [diffusers](https://github.com/huggingface/diffusers)
 * [accelerate](https://github.com/huggingface/accelerate)
 * [finetune-sd](https://github.com/harrywang/finetune-sd)
+* [Stuck Process and SIGTERM Signal Interruption During Training with accelerate launch](https://github.com/hiyouga/LLaMA-Factory/issues/2359)
