@@ -26,7 +26,3 @@ accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
   --validation_prompt="A photo of a cat in a bucket" \
   --validation_epochs=10 \
   --seed=42 \
-  --logging_dir=${OUTPUT_DIR}/logs
-
-
-
