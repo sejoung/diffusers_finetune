@@ -1,7 +1,7 @@
 numpy
 torch
 datasets
-git+https://github.com/huggingface/diffusers
+diffusers
 transformers
 accelerate
 torchvision
@@ -10,3 +10,5 @@ matplotlib
 wandb
 safetensors
 git+https://github.com/cloneofsimo/lora.git
+jupyter
+jupyter_http_over_ws
