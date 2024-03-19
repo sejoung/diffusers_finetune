@@ -26,4 +26,4 @@ accelerate launch ../src/train_dreambooth_lora.py \
   --validation_prompt="A photo of sks dog in a bucket" \
   --validation_epochs=20 \
   --seed=42 \
-  --logging_dir=${OUTPUT_DIR}/logs
+  --enable_xformers_memory_efficient_attention

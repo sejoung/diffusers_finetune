@@ -28,4 +28,5 @@ accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
   --checkpointing_steps=5000 \
   --validation_prompt="A photo of a cat in a bucket" \
   --validation_epochs=10 \
-  --seed=42
+  --seed=42 \
+  --enable_xformers_memory_efficient_attention
