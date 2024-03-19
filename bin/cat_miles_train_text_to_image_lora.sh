@@ -1,14 +1,14 @@
 #!/usr/bin/bash
 
-export MODEL_NAME="runwayml/stable-diffusion-v1-5"
-export DATA_DIR="../data/full-finetune/cat"
-export OUTPUT_DIR="../models/lora/miles"
-
 # Using RTX 3090 or 4000 series which doesn't support faster communication speedups. Ensuring P2P and IB communications are disabled
 # https://github.com/hiyouga/LLaMA-Factory/issues/2359
 export NCCL_P2P_LEVEL=NVL
 export NCCL_P2P_DISABLE=1
 export NCCL_IB_DISABLE=1
+
+export MODEL_NAME="runwayml/stable-diffusion-v1-5"
+export DATA_DIR="../data/full-finetune/cat"
+export OUTPUT_DIR="../models/lora/miles"
 
 accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
   --pretrained_model_name_or_path=$MODEL_NAME \
@@ -25,4 +25,4 @@ accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
   --checkpointing_steps=500 \
   --validation_prompt="A photo of a cat in a bucket" \
   --validation_epochs=10 \
-  --seed=42 \
+  --seed=42
