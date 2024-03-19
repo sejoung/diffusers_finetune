@@ -1,7 +1,7 @@
 numpy
 torch
 datasets
-git+https://github.com/huggingface/diffusers
+git+https://github.com/huggingface/diffusers.git
 transformers
 accelerate
 torchvision
@@ -12,4 +12,5 @@ safetensors
 git+https://github.com/cloneofsimo/lora.git
 jupyter
 jupyter_http_over_ws
-peft
+git+https://github.com/huggingface/peft.git
+tensorboard
