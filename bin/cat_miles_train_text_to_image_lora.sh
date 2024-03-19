@@ -27,3 +27,6 @@ accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
   --validation_epochs=10 \
   --seed=42 \
   --logging_dir=${OUTPUT_DIR}/logs
+
+
+

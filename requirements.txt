@@ -1,7 +1,7 @@
 numpy
 torch
 datasets
-diffusers == 0.13.0
+git+https://github.com/huggingface/diffusers
 transformers
 accelerate
 torchvision
@@ -12,3 +12,4 @@ safetensors
 git+https://github.com/cloneofsimo/lora.git
 jupyter
 jupyter_http_over_ws
+peft
