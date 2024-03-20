@@ -57,6 +57,9 @@ docker logs --tail 100 -f 430e2e8bd9f4
 
 ```shell
 tensorboard --logdir=models/dreambooth-lora/dog/logs --bind_all
+
+tensorboard --logdir=models/lora/miles/logs --bind_all
+
 ```
 
 
