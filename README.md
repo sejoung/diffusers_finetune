@@ -12,8 +12,11 @@
 
 ```shell
 python -m venv venv
+
 source venv/bin/activate
+
 pip install -r requirements.txt
+
 accelerate config default
 ```
 Optional: install [xformers](https://huggingface.co/docs/diffusers/optimization/xformers) and add `--enable_xformers_memory_efficient_attention`

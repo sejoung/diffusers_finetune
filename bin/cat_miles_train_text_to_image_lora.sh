@@ -9,8 +9,9 @@ export NCCL_IB_DISABLE=1
 export MODEL_NAME="runwayml/stable-diffusion-v1-5"
 export DATA_DIR="../data/full-finetune/cat"
 export OUTPUT_DIR="../models/lora/miles"
+export LOGGING_DIR="../logs/lora/miles"
 
-accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
+accelerate launch ../src/train_text_to_image_lora.py \
   --pretrained_model_name_or_path=$MODEL_NAME \
   --train_data_dir=$DATA_DIR \
   --caption_column="text" \
@@ -29,4 +30,5 @@ accelerate launch --mixed_precision="fp16"  ../src/train_text_to_image_lora.py \
   --validation_prompt="A photo of a cat in a bucket" \
   --validation_epochs=10 \
   --seed=42 \
-  --enable_xformers_memory_efficient_attention
+  --enable_xformers_memory_efficient_attention \
+  --logging_dir=${LOGGING_DIR}
