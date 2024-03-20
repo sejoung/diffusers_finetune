@@ -56,7 +56,7 @@ docker logs --tail 100 -f 430e2e8bd9f4
 ### 텐서보드
 
 ```shell
-tensorboard --logdir  --bind_all
+tensorboard --logdir=models/dreambooth-lora/dog/logs --bind_all
 ```
 
 
