@@ -51,6 +51,14 @@ docker exec -it 430e2e8bd9f4 /bin/bash
 docker logs --tail 100 -f 430e2e8bd9f4
 ```
 
+## 실행
+
+### 텐서보드
+
+```shell
+tensorboard --logdir  --bind_all
+```
+
 
 # 참고
 

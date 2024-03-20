@@ -9,7 +9,7 @@ export NCCL_IB_DISABLE=1
 export MODEL_NAME="runwayml/stable-diffusion-v1-5"
 export INSTANCE_DIR="../data/dreambooth/dog"
 export OUTPUT_DIR="../models/dreambooth-lora/dog"
-export LOGGING_DIR="../logs/dreambooth-lora/dog"
+export LOGGING_DIR="logs"
 
 accelerate launch ../src/train_dreambooth_lora.py \
   --pretrained_model_name_or_path=$MODEL_NAME  \
@@ -28,4 +28,4 @@ accelerate launch ../src/train_dreambooth_lora.py \
   --validation_epochs=20 \
   --seed=42 \
   --enable_xformers_memory_efficient_attention \
-  --logging_dir=${LOGGING_DIR}
+  --logging_dir=$LOGGING_DIR

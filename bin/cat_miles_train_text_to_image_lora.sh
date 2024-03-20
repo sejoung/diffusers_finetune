@@ -9,7 +9,7 @@ export NCCL_IB_DISABLE=1
 export MODEL_NAME="runwayml/stable-diffusion-v1-5"
 export DATA_DIR="../data/full-finetune/cat"
 export OUTPUT_DIR="../models/lora/miles"
-export LOGGING_DIR="../logs/lora/miles"
+export LOGGING_DIR="logs"
 
 accelerate launch ../src/train_text_to_image_lora.py \
   --pretrained_model_name_or_path=$MODEL_NAME \
@@ -31,4 +31,4 @@ accelerate launch ../src/train_text_to_image_lora.py \
   --validation_epochs=10 \
   --seed=42 \
   --enable_xformers_memory_efficient_attention \
-  --logging_dir=${LOGGING_DIR}
+  --logging_dir=$LOGGING_DIR
