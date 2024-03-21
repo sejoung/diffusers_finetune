@@ -62,6 +62,16 @@ tensorboard --logdir=models/lora/miles/logs --bind_all
 
 ```
 
+```shell
+python src/convert-to-safetensors.py --file models/lora/miles/checkpoint-1000 --output models/lora/miles/checkpoint-1000-safetensors
+```
+
+```shell
+python src/generate-lora.py --prompt "A photo of a cat in a bucket" --steps 200 --model_path /repositories/diffusers_finetune/models/lora/miles --output_folder outputs/lora/miles
+```
+
+```shell
+```
 
 # 참고
 

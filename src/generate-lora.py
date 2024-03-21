@@ -46,17 +46,17 @@ def main():
     if torch.cuda.is_available():
         device = "cuda"
         # if limited by GPU memory, chunking the attention computation in addition to using fp16
-        pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
+        pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5', torch_dtype=torch.float32)
     else:
         device = "cpu"
         # if on CPU or want to have maximum precision on GPU, use default full-precision setting
-        pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5')  
+        pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5')
     print(f'device is {device}')
 
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
     pipe.unet.load_attn_procs(args.model_path)
     pipe.to(device)
-    
+
     image = pipe(args.prompt, num_inference_steps=args.steps).images[0]
     image.save(args.output_folder + "/" + file_name + ".png")
 
