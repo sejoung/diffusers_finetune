@@ -1,63 +1,66 @@
 import argparse
 import re
+
 import torch
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler, AutoPipelineForText2Image
+from diffusers import AutoPipelineForText2Image
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate Images from Lora Weights")
-    parser.add_argument(
-        "--prompt",
-        type=str,
-        default="a photo of sks dog in a bucket",
-        help="prompt to generate the image",
-    )
+  parser = argparse.ArgumentParser(description="Generate Images from Lora Weights")
+  parser.add_argument(
+    "--prompt",
+    type=str,
+    default="a photo of sks dog in a bucket",
+    help="prompt to generate the image",
+  )
 
-    parser.add_argument(
-        "--model_path",
-        type=str,
-        default="./models/dreambooth-lora/dog",
-        help=("the path to the trained model file"),
-    )
+  parser.add_argument(
+    "--model_path",
+    type=str,
+    default="./models/dreambooth-lora/dog",
+    help=("the path to the trained model file"),
+  )
 
-    parser.add_argument(
-        "--output_folder",
-        type=str,
-        default="./outputs/lora",
-        help=("the path to folder to hold generated images"),
-    )
+  parser.add_argument(
+    "--output_folder",
+    type=str,
+    default="./outputs/lora",
+    help=("the path to folder to hold generated images"),
+  )
 
-    parser.add_argument(
-        "--steps",
-        type=int,
-        default=25,
-        help=("inference steps"),
-    )
+  parser.add_argument(
+    "--steps",
+    type=int,
+    default=25,
+    help=("inference steps"),
+  )
 
-    args = parser.parse_args()
-    return args
+  args = parser.parse_args()
+  return args
 
 
 def main():
-    args = parse_args()  # get arguments
-    file_name = re.sub(r'\W+', '-', args.prompt)  # change all non-alphanumeric characters to dash
+  args = parse_args()  # get arguments
+  file_name = re.sub(r'\W+', '-', args.prompt)  # change all non-alphanumeric characters to dash
 
-    if torch.cuda.is_available():
-        device = "cuda"
-        # if limited by GPU memory, chunking the attention computation in addition to using fp16
-        pipe = AutoPipelineForText2Image.from_pretrained("runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16).to("cuda")
-    else:
-        device = "cpu"
-        # if on CPU or want to have maximum precision on GPU, use default full-precision setting
-        pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5')
-    print(f'device is {device}')
-    print(f'model_path is {args.model_path}')
+  if torch.cuda.is_available():
+    device = "cuda"
+    # if limited by GPU memory, chunking the attention computation in addition to using fp16
+    pipe = AutoPipelineForText2Image.from_pretrained("runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16).to(
+      device)
+  else:
+    device = "cpu"
+    # if on CPU or want to have maximum precision on GPU, use default full-precision setting
+    pipe = AutoPipelineForText2Image.from_pretrained('runwayml/stable-diffusion-v1-5')
+  print(f'device is {device}')
+  print(f'model_path is {args.model_path}')
 
-    pipe.load_lora_weights(args.model_path, weight_name="pytorch_lora_weights.safetensors")
-    pipe.to(device)
+  pipe.load_lora_weights(args.model_path, weight_name="pytorch_lora_weights.safetensors")
+  pipe.to(device)
 
-    image = pipe(args.prompt).images[0]
-    image.save(args.output_folder + "/" + file_name + ".png")
+  image = pipe(args.prompt).images[0]
+  image.save(args.output_folder + "/" + file_name + ".png")
+
 
 if __name__ == "__main__":
-    main()
+  main()

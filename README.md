@@ -71,6 +71,7 @@ python src/generate-lora.py --prompt "A photo of a cat in a bucket" --steps 200 
 ```
 
 ```shell
+python src/convert_diffusers_lora_to_webui.py --input_lora /repositories/diffusers_finetune/models/lora/miles/pytorch_lora_weights.safetensors --output_lora miles.safetensors
 ```
 
 # 참고
