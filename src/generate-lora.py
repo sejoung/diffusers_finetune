@@ -45,17 +45,18 @@ def main():
     if torch.cuda.is_available():
         device = "cuda"
         # if limited by GPU memory, chunking the attention computation in addition to using fp16
-        pipe = AutoPipelineForText2Image.from_pretrained('runwayml/stable-diffusion-v1-5', torch_dtype=torch.float32)
+        pipe = AutoPipelineForText2Image.from_pretrained("runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16).to("cuda")
     else:
         device = "cpu"
         # if on CPU or want to have maximum precision on GPU, use default full-precision setting
         pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5')
     print(f'device is {device}')
+    print(f'model_path is {args.model_path}')
 
     pipe.load_lora_weights(args.model_path, weight_name="pytorch_lora_weights.safetensors")
     pipe.to(device)
 
-    image = pipe(args.prompt, num_inference_steps=args.steps).images[0]
+    image = pipe(args.prompt).images[0]
     image.save(args.output_folder + "/" + file_name + ".png")
 
 if __name__ == "__main__":
