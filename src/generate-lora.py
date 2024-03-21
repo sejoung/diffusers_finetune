@@ -1,7 +1,8 @@
 import argparse
 import re
 import torch
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler, AutoPipelineForText2Image
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate Images from Lora Weights")
@@ -33,8 +34,6 @@ def parse_args():
         help=("inference steps"),
     )
 
-    um_inference_steps=25
-
     args = parser.parse_args()
     return args
 
@@ -46,15 +45,14 @@ def main():
     if torch.cuda.is_available():
         device = "cuda"
         # if limited by GPU memory, chunking the attention computation in addition to using fp16
-        pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5', torch_dtype=torch.float32)
+        pipe = AutoPipelineForText2Image.from_pretrained('runwayml/stable-diffusion-v1-5', torch_dtype=torch.float32)
     else:
         device = "cpu"
         # if on CPU or want to have maximum precision on GPU, use default full-precision setting
         pipe = StableDiffusionPipeline.from_pretrained('runwayml/stable-diffusion-v1-5')
     print(f'device is {device}')
 
-    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-    pipe.unet.load_attn_procs(args.model_path)
+    pipe.load_lora_weights(args.model_path, weight_name="pytorch_lora_weights.safetensors")
     pipe.to(device)
 
     image = pipe(args.prompt, num_inference_steps=args.steps).images[0]
