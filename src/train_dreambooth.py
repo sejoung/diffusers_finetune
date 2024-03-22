@@ -40,16 +40,14 @@ from diffusers import (
   AutoencoderKL,
   DDPMScheduler,
   DiffusionPipeline,
-  StableDiffusionPipeline,
   UNet2DConditionModel,
 )
 from diffusers.optimization import get_scheduler
 from diffusers.training_utils import compute_snr
 from diffusers.utils import check_min_version, is_wandb_available
-from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
 from diffusers.utils.import_utils import is_xformers_available
 from diffusers.utils.torch_utils import is_compiled_module
-from huggingface_hub import create_repo, model_info, upload_folder
+from huggingface_hub import model_info
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
 from torch.utils.data import Dataset
@@ -64,50 +62,6 @@ if is_wandb_available():
 check_min_version("0.28.0.dev0")
 
 logger = get_logger(__name__)
-
-
-def save_model_card(
-  repo_id: str,
-  images: list = None,
-  base_model: str = None,
-  train_text_encoder=False,
-  prompt: str = None,
-  repo_folder: str = None,
-  pipeline: DiffusionPipeline = None,
-):
-  img_str = ""
-  if images is not None:
-    for i, image in enumerate(images):
-      image.save(os.path.join(repo_folder, f"image_{i}.png"))
-      img_str += f"![img_{i}](./image_{i}.png)\n"
-
-  model_description = f"""
-# DreamBooth - {repo_id}
-
-This is a dreambooth model derived from {base_model}. The weights were trained on {prompt} using [DreamBooth](https://dreambooth.github.io/).
-You can find some example images in the following. \n
-{img_str}
-
-DreamBooth for the text encoder was enabled: {train_text_encoder}.
-"""
-  model_card = load_or_create_model_card(
-    repo_id_or_path=repo_id,
-    from_training=True,
-    license="creativeml-openrail-m",
-    base_model=base_model,
-    prompt=prompt,
-    model_description=model_description,
-    inference=True,
-  )
-
-  tags = ["text-to-image", "dreambooth", "diffusers-training"]
-  if isinstance(pipeline, StableDiffusionPipeline):
-    tags.extend(["stable-diffusion", "stable-diffusion-diffusers"])
-  else:
-    tags.extend(["if", "if-diffusers"])
-  model_card = populate_model_card(model_card, tags=tags)
-
-  model_card.save(os.path.join(repo_folder, "README.md"))
 
 
 def log_validation(
@@ -902,11 +856,6 @@ def main(args):
     if args.output_dir is not None:
       os.makedirs(args.output_dir, exist_ok=True)
 
-    if args.push_to_hub:
-      repo_id = create_repo(
-        repo_id=args.hub_model_id or Path(args.output_dir).name, exist_ok=True, token=args.hub_token
-      ).repo_id
-
   # Load the tokenizer
   if args.tokenizer_name:
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, revision=args.revision, use_fast=False)
@@ -1411,23 +1360,6 @@ def main(args):
     pipeline.scheduler = pipeline.scheduler.from_config(pipeline.scheduler.config, **scheduler_args)
 
     pipeline.save_pretrained(args.output_dir)
-
-    if args.push_to_hub:
-      save_model_card(
-        repo_id,
-        images=images,
-        base_model=args.pretrained_model_name_or_path,
-        train_text_encoder=args.train_text_encoder,
-        prompt=args.instance_prompt,
-        repo_folder=args.output_dir,
-        pipeline=pipeline,
-      )
-      upload_folder(
-        repo_id=repo_id,
-        folder_path=args.output_dir,
-        commit_message="End of training",
-        ignore_patterns=["step_*", "epoch_*"],
-      )
 
   accelerator.end_training()
 
