@@ -50,12 +50,14 @@ from diffusers.utils import (
   convert_unet_state_dict_to_peft,
   is_wandb_available,
 )
+from diffusers.utils import convert_all_state_dict_to_peft, convert_state_dict_to_kohya
 from diffusers.utils.import_utils import is_xformers_available
 from diffusers.utils.torch_utils import is_compiled_module
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
 from peft import LoraConfig
 from peft.utils import get_peft_model_state_dict, set_peft_model_state_dict
+from safetensors.torch import load_file, save_file
 from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
@@ -68,6 +70,7 @@ if is_wandb_available():
 check_min_version("0.28.0.dev0")
 
 logger = get_logger(__name__)
+
 
 def log_validation(
   pipeline,
@@ -1325,6 +1328,11 @@ def main(args):
       unet_lora_layers=unet_lora_state_dict,
       text_encoder_lora_layers=text_encoder_state_dict,
     )
+
+    diffusers_state_dict = load_file(f"{args.output_dir}/pytorch_lora_weights.safetensors")
+    peft_state_dict = convert_all_state_dict_to_peft(diffusers_state_dict)
+    kohya_state_dict = convert_state_dict_to_kohya(peft_state_dict)
+    save_file(kohya_state_dict, f"{args.output_dir}/pytorch_lora_weights_webui.safetensors")
 
     # Final inference
     # Load previous pipeline
