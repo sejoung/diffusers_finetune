@@ -57,7 +57,7 @@ docker logs --tail 100 -f 430e2e8bd9f4
 
 ```shell
 tensorboard --logdir=models/dreambooth-lora/dog/logs --bind_all
-
+tensorboard --logdir=models/dreambooth-lora/sunglasses/logs --bind_all
 tensorboard --logdir=models/lora/miles/logs --bind_all
 
 ```
@@ -74,6 +74,10 @@ python src/generate-lora.py --prompt "A photo of a cat in a bucket" --steps 200 
 python src/convert_diffusers_lora_to_webui.py --input_lora models/dreambooth-lora/dog/pytorch_lora_weights.safetensors --output_lora  models/dreambooth-lora/dog/dog_lora.safetensors
 
 python src/convert_diffusers_lora_to_webui.py --input_lora models/lora/miles/pytorch_lora_weights.safetensors --output_lora models/lora/miles/miles_lora.safetensors
+
+
+python src/convert_diffusers_lora_to_webui.py --input_lora models/dreambooth-lora/sunglasses/pytorch_lora_weights.safetensors --output_lora  models/dreambooth-lora/sunglasses/sunglasses_lora.safetensors
+
 ```
 
 # 참고
