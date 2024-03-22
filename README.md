@@ -84,3 +84,4 @@ python src/convert_diffusers_lora_to_webui.py --input_lora models/lora/miles/pyt
 * [accelerate](https://github.com/huggingface/accelerate)
 * [finetune-sd](https://github.com/harrywang/finetune-sd)
 * [Stuck Process and SIGTERM Signal Interruption During Training with accelerate launch](https://github.com/hiyouga/LLaMA-Factory/issues/2359)
+* [nvidia nccl Environment Variables](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html)
