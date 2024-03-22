@@ -7,8 +7,8 @@ export NCCL_P2P_DISABLE=1
 export NCCL_IB_DISABLE=1
 
 export MODEL_NAME="runwayml/stable-diffusion-v1-5"
-export INSTANCE_DIR="./data/dreambooth/glasses"
-export OUTPUT_DIR="./models/dreambooth-lora/sunglasses"
+export INSTANCE_DIR="../data/dreambooth/glasses"
+export OUTPUT_DIR="../models/dreambooth-lora/sunglasses"
 export LOGGING_DIR="logs"
 
 accelerate launch ../src/train_dreambooth_lora.py \
