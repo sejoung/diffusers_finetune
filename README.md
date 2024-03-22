@@ -19,7 +19,9 @@ pip install -r requirements.txt
 
 accelerate config default
 ```
-Optional: install [xformers](https://huggingface.co/docs/diffusers/optimization/xformers) and add `--enable_xformers_memory_efficient_attention`
+
+Optional: install [xformers](https://huggingface.co/docs/diffusers/optimization/xformers) and
+add `--enable_xformers_memory_efficient_attention`
 
 ```shell
 pip install xformers
@@ -28,7 +30,6 @@ pip install xformers
 ```shell
 deactivate
 ```
-
 
 ### 도커 기동
 

@@ -20,37 +20,36 @@
 import argparse
 import os
 
-from safetensors.torch import load_file, save_file
-
 from diffusers.utils import convert_all_state_dict_to_peft, convert_state_dict_to_kohya
+from safetensors.torch import load_file, save_file
 
 
 def convert_and_save(input_lora, output_lora=None):
-    if output_lora is None:
-        base_name = os.path.splitext(input_lora)[0]
-        output_lora = f"{base_name}_webui.safetensors"
+  if output_lora is None:
+    base_name = os.path.splitext(input_lora)[0]
+    output_lora = f"{base_name}_webui.safetensors"
 
-    diffusers_state_dict = load_file(input_lora)
-    peft_state_dict = convert_all_state_dict_to_peft(diffusers_state_dict)
-    kohya_state_dict = convert_state_dict_to_kohya(peft_state_dict)
-    save_file(kohya_state_dict, output_lora)
+  diffusers_state_dict = load_file(input_lora)
+  peft_state_dict = convert_all_state_dict_to_peft(diffusers_state_dict)
+  kohya_state_dict = convert_state_dict_to_kohya(peft_state_dict)
+  save_file(kohya_state_dict, output_lora)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert LoRA model to PEFT and then to Kohya format.")
-    parser.add_argument(
-        "--input_lora",
-        type=str,
-        required=True,
-        help="Path to the input LoRA model file in the diffusers format.",
-    )
-    parser.add_argument(
-        "--output_lora",
-        type=str,
-        required=False,
-        help="Path for the converted LoRA (safetensors format for AUTOMATIC1111, ComfyUI, etc.). Optional, defaults to input name with a _webui suffix.",
-    )
+  parser = argparse.ArgumentParser(description="Convert LoRA model to PEFT and then to Kohya format.")
+  parser.add_argument(
+    "--input_lora",
+    type=str,
+    required=True,
+    help="Path to the input LoRA model file in the diffusers format.",
+  )
+  parser.add_argument(
+    "--output_lora",
+    type=str,
+    required=False,
+    help="Path for the converted LoRA (safetensors format for AUTOMATIC1111, ComfyUI, etc.). Optional, defaults to input name with a _webui suffix.",
+  )
 
-    args = parser.parse_args()
+  args = parser.parse_args()
 
-    convert_and_save(args.input_lora, args.output_lora)
+  convert_and_save(args.input_lora, args.output_lora)
