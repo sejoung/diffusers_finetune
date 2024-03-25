@@ -76,18 +76,8 @@ python src/generate-lora.py --prompt "A photo of a cat in a bucket" --steps 200 
 ```
 
 ```shell
-python src/convert_diffusers_lora_to_webui.py --input_lora models/dreambooth-lora/dog/pytorch_lora_weights.safetensors --output_lora  models/dreambooth-lora/dog/dog_lora.safetensors
+python src/convert_diffusers_to_original_stable_diffusion.py --model_path models/dreambooth/dog --checkpoint_path  models/dreambooth/dog/dog.safetensors --use_safetensors --half```
 
-python src/convert_diffusers_lora_to_webui.py --input_lora models/lora/miles/pytorch_lora_weights.safetensors --output_lora models/lora/miles/miles_lora.safetensors
-
-
-python src/convert_diffusers_lora_to_webui.py --input_lora models/dreambooth-lora/sunglasses/pytorch_lora_weights.safetensors --output_lora  models/dreambooth-lora/sunglasses/sunglasses_lora.safetensors
-
-
-python src/convert_diffusers_to_original_stable_diffusion.py --model_path models/dreambooth/dog --checkpoint_path  models/dreambooth/dog --use_safetensors --half
-```
-
-```shell
 ```
 
 # 참고
