@@ -89,3 +89,4 @@ python src/convert_diffusers_to_original_stable_diffusion.py --model_path models
 * [finetune-sd](https://github.com/harrywang/finetune-sd)
 * [Stuck Process and SIGTERM Signal Interruption During Training with accelerate launch](https://github.com/hiyouga/LLaMA-Factory/issues/2359)
 * [nvidia nccl Environment Variables](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html)
+* [dreambooth-training-guide](https://github.com/nitrosocke/dreambooth-training-guide)
