@@ -46,6 +46,8 @@ from peft.utils import get_peft_model_state_dict
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
+from diffusers.utils import convert_all_state_dict_to_peft, convert_state_dict_to_kohya
+from safetensors.torch import load_file, save_file
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.28.0.dev0")
@@ -844,6 +846,12 @@ def main():
       unet_lora_layers=unet_lora_state_dict,
       safe_serialization=True,
     )
+
+    # Convert the lora layers to peft and kohya
+    diffusers_state_dict = load_file(f"{args.output_dir}/pytorch_lora_weights.safetensors")
+    peft_state_dict = convert_all_state_dict_to_peft(diffusers_state_dict)
+    kohya_state_dict = convert_state_dict_to_kohya(peft_state_dict)
+    save_file(kohya_state_dict, f"{args.output_dir}/pytorch_lora_weights_webui.safetensors")
 
     # Final inference
     # Load previous pipeline
