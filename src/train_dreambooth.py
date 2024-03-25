@@ -1360,6 +1360,7 @@ def main(args):
     pipeline.scheduler = pipeline.scheduler.from_config(pipeline.scheduler.config, **scheduler_args)
 
     pipeline.save_pretrained(args.output_dir)
+    print(f"Saved pipeline to {args.output_dir}")
 
   accelerator.end_training()
 
