@@ -83,6 +83,11 @@ python src/convert_diffusers_lora_to_webui.py --input_lora models/lora/miles/pyt
 
 python src/convert_diffusers_lora_to_webui.py --input_lora models/dreambooth-lora/sunglasses/pytorch_lora_weights.safetensors --output_lora  models/dreambooth-lora/sunglasses/sunglasses_lora.safetensors
 
+
+python src/convert_diffusers_to_original_stable_diffusion.py --model_path models/dreambooth/dog --checkpoint_path  models/dreambooth/dog --use_safetensors --half
+```
+
+```shell
 ```
 
 # 참고
