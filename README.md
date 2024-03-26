@@ -2,8 +2,15 @@
 
 파이썬 3.10 버전으로 NVIDIA GPU(4090)를 사용하여 diffusers를 활용한 파인튜닝을 수행합니다.
 
+## 로라
+
+### 로라 샘플 코드
 - [train_text_to_image_lora.py](https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image_lora.py)
+
+### 드림부스 페이지에서 로라를 사용하는 방법을 설명한 것
 - [train_dreambooth_lora.py](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/train_dreambooth_lora.py)
+
+## 드림부스
 - [train_dreambooth.py](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/train_dreambooth.py)
 
 ## 설치
