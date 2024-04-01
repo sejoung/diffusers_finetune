@@ -50,10 +50,13 @@ from diffusers.utils.torch_utils import is_compiled_module
 from huggingface_hub import model_info
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
+from safetensors.torch import save_file
 from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
+
+from convert_diffusers_to_original_stable_diffusion import get_state_dict
 
 if is_wandb_available():
   import wandb
@@ -1302,7 +1305,12 @@ def main(args):
 
             save_path = os.path.join(args.output_dir, f"checkpoint-{global_step}")
             accelerator.save_state(save_path)
+            state_dict = get_state_dict(args.output_dir)
             logger.info(f"Saved state to {save_path}")
+
+            webui_save_file = f"{args.output_dir}/dreambooth_weights_webui.safetensors"
+            save_file(state_dict, webui_save_file)
+            logger.info(f"Saved webui state to {webui_save_file}")
 
           images = []
 
