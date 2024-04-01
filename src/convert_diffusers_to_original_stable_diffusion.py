@@ -279,26 +279,26 @@ def convert_text_enc_state_dict(text_enc_dict):
   return text_enc_dict
 
 
-def get_state_dict():
+def get_state_dict(model_path: str):
   # Path for safetensors
-  unet_path = osp.join(args.model_path, "unet", "diffusion_pytorch_model.safetensors")
-  vae_path = osp.join(args.model_path, "vae", "diffusion_pytorch_model.safetensors")
-  text_enc_path = osp.join(args.model_path, "text_encoder", "model.safetensors")
+  unet_path = osp.join(model_path, "unet", "diffusion_pytorch_model.safetensors")
+  vae_path = osp.join(model_path, "vae", "diffusion_pytorch_model.safetensors")
+  text_enc_path = osp.join(model_path, "text_encoder", "model.safetensors")
   # Load models from safetensors if it exists, if it doesn't pytorch
   if osp.exists(unet_path):
     unet_state_dict = load_file(unet_path, device="cpu")
   else:
-    unet_path = osp.join(args.model_path, "unet", "diffusion_pytorch_model.bin")
+    unet_path = osp.join(model_path, "unet", "diffusion_pytorch_model.bin")
     unet_state_dict = torch.load(unet_path, map_location="cpu")
   if osp.exists(vae_path):
     vae_state_dict = load_file(vae_path, device="cpu")
   else:
-    vae_path = osp.join(args.model_path, "vae", "diffusion_pytorch_model.bin")
+    vae_path = osp.join(model_path, "vae", "diffusion_pytorch_model.bin")
     vae_state_dict = torch.load(vae_path, map_location="cpu")
   if osp.exists(text_enc_path):
     text_enc_dict = load_file(text_enc_path, device="cpu")
   else:
-    text_enc_path = osp.join(args.model_path, "text_encoder", "pytorch_model.bin")
+    text_enc_path = osp.join(model_path, "text_encoder", "pytorch_model.bin")
     text_enc_dict = torch.load(text_enc_path, map_location="cpu")
   # Convert the UNet model
   unet_state_dict = convert_unet_state_dict(unet_state_dict)
@@ -337,7 +337,7 @@ if __name__ == "__main__":
 
   assert args.checkpoint_path is not None, "Must provide a checkpoint path!"
 
-  state_dict = get_state_dict()
+  state_dict = get_state_dict(args.model_path)
   if args.half:
     state_dict = {k: v.half() for k, v in state_dict.items()}
 
