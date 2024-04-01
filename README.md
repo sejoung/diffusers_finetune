@@ -97,3 +97,6 @@ python src/convert_diffusers_to_original_stable_diffusion.py --model_path models
 * [Stuck Process and SIGTERM Signal Interruption During Training with accelerate launch](https://github.com/hiyouga/LLaMA-Factory/issues/2359)
 * [nvidia nccl Environment Variables](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html)
 * [dreambooth-training-guide](https://github.com/nitrosocke/dreambooth-training-guide)
+* [dreambooth_classifiers_and_instanceclass_prompts](https://www.reddit.com/r/StableDiffusion/comments/z4s07l/dreambooth_classifiers_and_instanceclass_prompts/)
+* [ELI5 Training](https://github.com/d8ahazard/sd_dreambooth_extension/wiki/ELI5-Training)
+* [Dreambooth로 특정 화가의 스타일 학습시키기 3편](https://www.clien.net/service/board/cm_aigurim/18160386)
