@@ -14,3 +14,5 @@ jupyter
 jupyter_http_over_ws
 git+https://github.com/huggingface/peft.git
 tensorboard
+pytest
+pytest-asyncio
