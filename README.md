@@ -100,3 +100,5 @@ python src/convert_diffusers_to_original_stable_diffusion.py --model_path models
 * [dreambooth_classifiers_and_instanceclass_prompts](https://www.reddit.com/r/StableDiffusion/comments/z4s07l/dreambooth_classifiers_and_instanceclass_prompts/)
 * [ELI5 Training](https://github.com/d8ahazard/sd_dreambooth_extension/wiki/ELI5-Training)
 * [Dreambooth로 특정 화가의 스타일 학습시키기 3편](https://www.clien.net/service/board/cm_aigurim/18160386)
+* [waifu-diffusion](https://huggingface.co/hakurei/waifu-diffusion)
+* [calliope-legacy](https://huggingface.co/NovelAI/calliope-legacy)
