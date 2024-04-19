@@ -279,27 +279,28 @@ def convert_text_enc_state_dict(text_enc_dict):
   return text_enc_dict
 
 
-def get_state_dict(model_path: str):
+def get_state_dict(model_path: str, _device="cpu"):
   # Path for safetensors
   unet_path = osp.join(model_path, "unet", "diffusion_pytorch_model.safetensors")
+  print(osp.exists(unet_path))
   vae_path = osp.join(model_path, "vae", "diffusion_pytorch_model.safetensors")
   text_enc_path = osp.join(model_path, "text_encoder", "model.safetensors")
   # Load models from safetensors if it exists, if it doesn't pytorch
   if osp.exists(unet_path):
-    unet_state_dict = load_file(unet_path, device="cpu")
+    unet_state_dict = load_file(unet_path, device=_device)
   else:
     unet_path = osp.join(model_path, "unet", "diffusion_pytorch_model.bin")
-    unet_state_dict = torch.load(unet_path, map_location="cpu")
+    unet_state_dict = torch.load(unet_path, map_location=_device)
   if osp.exists(vae_path):
-    vae_state_dict = load_file(vae_path, device="cpu")
+    vae_state_dict = load_file(vae_path, device=_device)
   else:
     vae_path = osp.join(model_path, "vae", "diffusion_pytorch_model.bin")
-    vae_state_dict = torch.load(vae_path, map_location="cpu")
+    vae_state_dict = torch.load(vae_path, map_location=_device)
   if osp.exists(text_enc_path):
-    text_enc_dict = load_file(text_enc_path, device="cpu")
+    text_enc_dict = load_file(text_enc_path, device=_device)
   else:
     text_enc_path = osp.join(model_path, "text_encoder", "pytorch_model.bin")
-    text_enc_dict = torch.load(text_enc_path, map_location="cpu")
+    text_enc_dict = torch.load(text_enc_path, map_location=_device)
   # Convert the UNet model
   unet_state_dict = convert_unet_state_dict(unet_state_dict)
   unet_state_dict = {"model.diffusion_model." + k: v for k, v in unet_state_dict.items()}
@@ -329,6 +330,9 @@ if __name__ == "__main__":
   parser.add_argument("--half", action="store_true", help="Save weights in half precision.")
   parser.add_argument(
     "--use_safetensors", action="store_true", help="Save weights use safetensors, default is ckpt."
+  )
+  parser.add_argument(
+    "--device", default="cpu", type=str, help="cpu or cuda:0, default is cpu."
   )
 
   args = parser.parse_args()

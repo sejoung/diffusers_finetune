@@ -83,7 +83,7 @@ python src/generate-lora.py --prompt "A photo of a cat in a bucket" --steps 200 
 ```
 
 ```shell
-python src/convert_diffusers_to_original_stable_diffusion.py --model_path models/dreambooth/dog --checkpoint_path  models/dreambooth/dog/dog.safetensors --use_safetensors --half
+python src/convert_diffusers_to_original_stable_diffusion.py --model_path /repositories/anything-v5 --checkpoint_path  /repositories/dog.safetensors --use_safetensors --half
 ```
 
 
