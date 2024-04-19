@@ -12,4 +12,4 @@ def test_convert_to_pathlib():
   output = "/Users/beni/Downloads/diffusers_model_original"
   pipeline.save_pretrained(output)
   state_dict = get_state_dict(output)
-  save_file(state_dict, "/Users/beni/Downloads/diffusers_model_original.safetensors")
+  save_file(state_dict, "/Users/beni/Downloads/anything-v5.safetensors")
