@@ -282,7 +282,6 @@ def convert_text_enc_state_dict(text_enc_dict):
 def get_state_dict(model_path: str, _device="cpu"):
   # Path for safetensors
   unet_path = osp.join(model_path, "unet", "diffusion_pytorch_model.safetensors")
-  print(osp.exists(unet_path))
   vae_path = osp.join(model_path, "vae", "diffusion_pytorch_model.safetensors")
   text_enc_path = osp.join(model_path, "text_encoder", "model.safetensors")
   # Load models from safetensors if it exists, if it doesn't pytorch
