@@ -55,6 +55,7 @@ from diffusers.utils import (
   convert_unet_state_dict_to_peft,
   is_wandb_available,
 )
+from diffusers.utils import convert_all_state_dict_to_peft, convert_state_dict_to_kohya
 from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
 from diffusers.utils.import_utils import is_xformers_available
 from diffusers.utils.torch_utils import is_compiled_module
@@ -63,6 +64,7 @@ from huggingface_hub.utils import insecure_hashlib
 from packaging import version
 from peft import LoraConfig, set_peft_model_state_dict
 from peft.utils import get_peft_model_state_dict
+from safetensors.torch import load_file, save_file
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.transforms.functional import crop
@@ -1888,6 +1890,11 @@ def main(args):
       text_encoder_lora_layers=text_encoder_lora_layers,
       text_encoder_2_lora_layers=text_encoder_2_lora_layers,
     )
+
+    diffusers_state_dict = load_file(f"{args.output_dir}/pytorch_lora_weights.safetensors")
+    peft_state_dict = convert_all_state_dict_to_peft(diffusers_state_dict)
+    kohya_state_dict = convert_state_dict_to_kohya(peft_state_dict)
+    save_file(kohya_state_dict, f"{args.output_dir}/pytorch_lora_weights_webui.safetensors")
 
     # Final inference
     # Load previous pipeline
