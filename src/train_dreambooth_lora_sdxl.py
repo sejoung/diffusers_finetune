@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 
 import argparse
-import contextlib
 import gc
 import itertools
 import json
@@ -24,6 +23,7 @@ import os
 import random
 import shutil
 import warnings
+from contextlib import nullcontext
 from pathlib import Path
 
 import diffusers
@@ -51,15 +51,15 @@ from diffusers.optimization import get_scheduler
 from diffusers.training_utils import _set_state_dict_into_text_encoder, cast_training_params, compute_snr
 from diffusers.utils import (
   check_min_version,
+  convert_all_state_dict_to_peft,
   convert_state_dict_to_diffusers,
+  convert_state_dict_to_kohya,
   convert_unet_state_dict_to_peft,
   is_wandb_available,
 )
-from diffusers.utils import convert_all_state_dict_to_peft, convert_state_dict_to_kohya
-from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
 from diffusers.utils.import_utils import is_xformers_available
 from diffusers.utils.torch_utils import is_compiled_module
-from huggingface_hub import create_repo, hf_hub_download, upload_folder
+from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
 from peft import LoraConfig, set_peft_model_state_dict
@@ -70,6 +70,8 @@ from torchvision import transforms
 from torchvision.transforms.functional import crop
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
+
+from train_util import glob_images_pathlib
 
 if is_wandb_available():
   import wandb
@@ -94,83 +96,6 @@ def determine_scheduler_type(pretrained_model_name_or_path, revision):
   return scheduler_type
 
 
-def save_model_card(
-  repo_id: str,
-  use_dora: bool,
-  images=None,
-  base_model: str = None,
-  train_text_encoder=False,
-  instance_prompt=None,
-  validation_prompt=None,
-  repo_folder=None,
-  vae_path=None,
-):
-  widget_dict = []
-  if images is not None:
-    for i, image in enumerate(images):
-      image.save(os.path.join(repo_folder, f"image_{i}.png"))
-      widget_dict.append(
-        {"text": validation_prompt if validation_prompt else " ", "output": {"url": f"image_{i}.png"}}
-      )
-
-  model_description = f"""
-# {'SDXL' if 'playground' not in base_model else 'Playground'} LoRA DreamBooth - {repo_id}
-
-<Gallery />
-
-## Model description
-
-These are {repo_id} LoRA adaption weights for {base_model}.
-
-The weights were trained  using [DreamBooth](https://dreambooth.github.io/).
-
-LoRA for the text encoder was enabled: {train_text_encoder}.
-
-Special VAE used for training: {vae_path}.
-
-## Trigger words
-
-You should use {instance_prompt} to trigger the image generation.
-
-## Download model
-
-Weights for this model are available in Safetensors format.
-
-[Download]({repo_id}/tree/main) them in the Files & versions tab.
-
-"""
-  if "playground" in base_model:
-    model_description += """\n
-## License
-
-Please adhere to the licensing terms as described [here](https://huggingface.co/playgroundai/playground-v2.5-1024px-aesthetic/blob/main/LICENSE.md).
-"""
-  model_card = load_or_create_model_card(
-    repo_id_or_path=repo_id,
-    from_training=True,
-    license="openrail++" if "playground" not in base_model else "playground-v2dot5-community",
-    base_model=base_model,
-    prompt=instance_prompt,
-    model_description=model_description,
-    widget=widget_dict,
-  )
-  tags = [
-    "text-to-image",
-    "text-to-image",
-    "diffusers-training",
-    "diffusers",
-    "lora" if not use_dora else "dora",
-    "template:sd-lora",
-  ]
-  if "playground" in base_model:
-    tags.extend(["playground", "playground-diffusers"])
-  else:
-    tags.extend(["stable-diffusion-xl", "stable-diffusion-xl-diffusers"])
-
-  model_card = populate_model_card(model_card, tags=tags)
-  model_card.save(os.path.join(repo_folder, "README.md"))
-
-
 def log_validation(
   pipeline,
   args,
@@ -178,6 +103,7 @@ def log_validation(
   pipeline_args,
   epoch,
   is_final_validation=False,
+  global_step=999999999999,
 ):
   logger.info(
     f"Running validation... \n Generating {args.num_validation_images} images with prompt:"
@@ -205,11 +131,12 @@ def log_validation(
   generator = torch.Generator(device=accelerator.device).manual_seed(args.seed) if args.seed else None
   # Currently the context determination is a bit hand-wavy. We can improve it in the future if there's a better
   # way to condition it. Reference: https://github.com/huggingface/diffusers/pull/7126#issuecomment-1968523051
-  inference_ctx = (
-    contextlib.nullcontext() if "playground" in args.pretrained_model_name_or_path else torch.cuda.amp.autocast()
-  )
+  if torch.backends.mps.is_available() or "playground" in args.pretrained_model_name_or_path:
+    autocast_ctx = nullcontext()
+  else:
+    autocast_ctx = torch.autocast(accelerator.device.type)
 
-  with inference_ctx:
+  with autocast_ctx:
     images = [pipeline(**pipeline_args, generator=generator).images[0] for _ in range(args.num_validation_images)]
 
   for tracker in accelerator.trackers:
@@ -227,9 +154,20 @@ def log_validation(
       )
 
   del pipeline
-  torch.cuda.empty_cache()
+  if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+
+  save_images(args.output_dir, global_step, images, args.validation_prompt)
 
   return images
+
+
+def save_images(output_dir, global_step, images, validation_prompt):
+  save_dir = output_dir + "/validation_images"
+  os.makedirs(save_dir, exist_ok=True)
+  for idx, img in enumerate(images):
+    img_filename = f"{validation_prompt}_{global_step}_{idx}.png"
+    img.save(os.path.join(save_dir, img_filename))
 
 
 def import_model_class_from_model_name_or_path(
@@ -582,7 +520,6 @@ def parse_args(input_args=None):
          "Ignored if optimizer is adamW",
   )
   parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-  parser.add_argument("--push_to_hub", action="store_true", help="Whether or not to push the model to the Hub.")
   parser.add_argument("--hub_token", type=str, default=None, help="The token to use to push to the Model Hub.")
   parser.add_argument(
     "--hub_model_id",
@@ -640,6 +577,12 @@ def parse_args(input_args=None):
   parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
   parser.add_argument(
     "--enable_xformers_memory_efficient_attention", action="store_true", help="Whether or not to use xformers."
+  )
+  parser.add_argument(
+    "--webui_model_name",
+    type=str,
+    default="dreambooth_weights_webui",
+    help="webui model name",
   )
   parser.add_argument(
     "--rank",
@@ -766,8 +709,8 @@ class DreamBoothDataset(Dataset):
       self.instance_data_root = Path(instance_data_root)
       if not self.instance_data_root.exists():
         raise ValueError("Instance images root doesn't exists.")
-
-      instance_images = [Image.open(path) for path in list(Path(instance_data_root).iterdir())]
+      instance_images_paths = glob_images_pathlib(self.instance_data_root, recursive=False)
+      instance_images = [Image.open(path) for path in instance_images_paths]
       self.custom_instance_prompts = None
 
     self.instance_images = []
@@ -959,6 +902,12 @@ def main(args):
   if args.do_edm_style_training and args.snr_gamma is not None:
     raise ValueError("Min-SNR formulation is not supported when conducting EDM-style training.")
 
+  if torch.backends.mps.is_available() and args.mixed_precision == "bf16":
+    # due to pytorch#99272, MPS does not yet support bfloat16.
+    raise ValueError(
+      "Mixed precision training with bfloat16 is not supported on MPS. Please use fp16 (recommended) or fp32 instead."
+    )
+
   logging_dir = Path(args.output_dir, args.logging_dir)
 
   accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir)
@@ -970,6 +919,10 @@ def main(args):
     project_config=accelerator_project_config,
     kwargs_handlers=[kwargs],
   )
+
+  # Disable AMP for MPS.
+  if torch.backends.mps.is_available():
+    accelerator.native_amp = False
 
   if args.report_to == "wandb":
     if not is_wandb_available():
@@ -1001,7 +954,8 @@ def main(args):
     cur_class_images = len(list(class_images_dir.iterdir()))
 
     if cur_class_images < args.num_class_images:
-      torch_dtype = torch.float16 if accelerator.device.type == "cuda" else torch.float32
+      has_supported_fp16_accelerator = torch.cuda.is_available() or torch.backends.mps.is_available()
+      torch_dtype = torch.float16 if has_supported_fp16_accelerator else torch.float32
       if args.prior_generation_precision == "fp32":
         torch_dtype = torch.float32
       elif args.prior_generation_precision == "fp16":
@@ -1043,11 +997,6 @@ def main(args):
   if accelerator.is_main_process:
     if args.output_dir is not None:
       os.makedirs(args.output_dir, exist_ok=True)
-
-    if args.push_to_hub:
-      repo_id = create_repo(
-        repo_id=args.hub_model_id or Path(args.output_dir).name, exist_ok=True, token=args.hub_token
-      ).repo_id
 
   # Load the tokenizers
   tokenizer_one = AutoTokenizer.from_pretrained(
@@ -1125,6 +1074,12 @@ def main(args):
     weight_dtype = torch.float16
   elif accelerator.mixed_precision == "bf16":
     weight_dtype = torch.bfloat16
+
+  if torch.backends.mps.is_available() and weight_dtype == torch.bfloat16:
+    # due to pytorch#99272, MPS does not yet support bfloat16.
+    raise ValueError(
+      "Mixed precision training with bfloat16 is not supported on MPS. Please use fp16 (recommended) or fp32 instead."
+    )
 
   # Move unet, vae and text_encoder to device and cast to weight_dtype
   unet.to(accelerator.device, dtype=weight_dtype)
@@ -1270,7 +1225,7 @@ def main(args):
 
   # Enable TF32 for faster training on Ampere GPUs,
   # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
-  if args.allow_tf32:
+  if args.allow_tf32 and torch.cuda.is_available():
     torch.backends.cuda.matmul.allow_tf32 = True
 
   if args.scale_lr:
@@ -1447,7 +1402,8 @@ def main(args):
   if not args.train_text_encoder and not train_dataset.custom_instance_prompts:
     del tokenizers, text_encoders
     gc.collect()
-    torch.cuda.empty_cache()
+    if torch.cuda.is_available():
+      torch.cuda.empty_cache()
 
   # If custom instance prompts are NOT provided (i.e. the instance prompt is used for all images),
   # pack the statically computed variables appropriately here. This is so that we don't
@@ -1862,6 +1818,7 @@ def main(args):
           accelerator,
           pipeline_args,
           epoch,
+          global_step
         )
 
   # Save the lora layers
@@ -1890,11 +1847,15 @@ def main(args):
       text_encoder_lora_layers=text_encoder_lora_layers,
       text_encoder_2_lora_layers=text_encoder_2_lora_layers,
     )
-
-    diffusers_state_dict = load_file(f"{args.output_dir}/pytorch_lora_weights.safetensors")
-    peft_state_dict = convert_all_state_dict_to_peft(diffusers_state_dict)
+    lora_state_dict = load_file(f"{args.output_dir}/pytorch_lora_weights.safetensors")
+    peft_state_dict = convert_all_state_dict_to_peft(lora_state_dict)
     kohya_state_dict = convert_state_dict_to_kohya(peft_state_dict)
-    save_file(kohya_state_dict, f"{args.output_dir}/pytorch_lora_weights_webui.safetensors")
+    webui_save_file = f"{args.output_dir}/{args.webui_model_name}.safetensors"
+    save_file(kohya_state_dict, webui_save_file)
+
+    logger.info(f"Saved webui state to {webui_save_file}")
+    logger.info(f"scp {webui_save_file} dev@10.20.71.59:/repositories/stable-diffusion-webui-docker/data/models/Lora/MUGI")
+    logger.info(f"cp {webui_save_file} /repositories/stable-diffusion-webui-docker/data/models/Lora/MUGI")
 
     # Final inference
     # Load previous pipeline
@@ -1927,25 +1888,6 @@ def main(args):
         pipeline_args,
         epoch,
         is_final_validation=True,
-      )
-
-    if args.push_to_hub:
-      save_model_card(
-        repo_id,
-        use_dora=args.use_dora,
-        images=images,
-        base_model=args.pretrained_model_name_or_path,
-        train_text_encoder=args.train_text_encoder,
-        instance_prompt=args.instance_prompt,
-        validation_prompt=args.validation_prompt,
-        repo_folder=args.output_dir,
-        vae_path=args.pretrained_vae_model_name_or_path,
-      )
-      upload_folder(
-        repo_id=repo_id,
-        folder_path=args.output_dir,
-        commit_message="End of training",
-        ignore_patterns=["step_*", "epoch_*"],
       )
 
   accelerator.end_training()
